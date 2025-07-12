@@ -1,197 +1,204 @@
-# Player Re-identification System
+# Skill Swap Platform
 
-A computer vision solution for maintaining consistent player IDs across video frames, designed for sports analytics applications.
-
-## Overview
-
-This project implements a player re-identification system that:
-- Detects players in video frames using YOLOv11
-- Assigns consistent IDs to players across frames
-- Maintains tracking even when players temporarily leave the view
-- Re-identifies players when they re-enter the frame
+A modern web application that enables users to list their skills and request others in return, facilitating skill exchanges within a community.
 
 ## Features
 
-- **Robust Detection**: Uses fine-tuned YOLOv11 model for accurate player detection
-- **Visual Feature Extraction**: Color histograms and shape features for player identification
-- **Spatial-Temporal Tracking**: Combines visual similarity with spatial proximity
-- **Re-identification**: Maintains player IDs across temporary occlusions
-- **Real-time Capable**: Efficient processing suitable for real-time applications
+### User Features
+- **User Registration & Authentication** - Secure user accounts with JWT authentication
+- **Profile Management** - Complete user profiles with photos, bio, location, and availability
+- **Skills Management** - Add offered skills with proficiency levels and wanted skills with urgency
+- **User Discovery** - Browse and search users by skills, location, and other criteria
+- **Swap Requests** - Create, accept, reject, and manage skill swap requests
+- **Rating System** - Rate and provide feedback after completed swaps
+- **Privacy Controls** - Make profiles public or private
 
-## Requirements
+### Admin Features
+- **User Management** - Ban/unban users, view user statistics
+- **Content Moderation** - Approve/reject skill descriptions
+- **Platform Messages** - Send platform-wide announcements
+- **Analytics & Reports** - Monitor user activity, swap statistics, and ratings
+- **Data Export** - Export user data, swap logs, and feedback reports
 
-- Python 3.8+
-- OpenCV
-- PyTorch
-- Ultralytics YOLO
-- NumPy, SciPy, scikit-learn
+## Technology Stack
 
-## Installation
+### Backend
+- **Node.js** with Express.js framework
+- **SQLite** database for data storage
+- **JWT** for authentication
+- **Bcrypt** for password hashing
+- **Multer** for file uploads
+- **Express Validator** for input validation
 
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd Player_Reidentification
+### Frontend
+- **React 18** with TypeScript
+- **React Router** for navigation
+- **React Query** for server state management
+- **Styled Components** for styling
+- **React Hook Form** for form management
+- **React Toastify** for notifications
+
+## Getting Started
+
+### Prerequisites
+- Node.js (v16 or higher)
+- npm or yarn
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd skill-swap-platform
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm run install-all
+   ```
+
+3. **Set up the database**
+   ```bash
+   npm run setup
+   ```
+
+4. **Start the development servers**
+   ```bash
+   npm run dev
+   ```
+
+This will start:
+- Backend server at `http://localhost:5000`
+- Frontend development server at `http://localhost:3000`
+
+### Environment Variables
+
+Create a `.env` file in the server directory:
+
+```env
+NODE_ENV=development
+PORT=5000
+JWT_SECRET=your-jwt-secret-key
+CLIENT_URL=http://localhost:3000
 ```
 
-2. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
+## Usage
 
-3. Download the YOLOv11 model:
-   - Download from: https://drive.google.com/file/d/1-5fOSHOSB9UXyP_enOoZNAMScrePVcMD/view
-   - Place the model file as `yolo_model.pt` in the project directory
+### For Users
 
-## Quick Start
+1. **Register an Account**
+   - Create a new account with username, email, and password
+   - Fill out your profile with skills, location, and availability
 
-### Option 1: Use the Demo Script
+2. **Add Skills**
+   - Add skills you can offer with proficiency levels
+   - Add skills you want to learn with urgency levels
 
-```bash
-# Create a sample test video and run demo
-python demo.py --create-sample
+3. **Browse Users**
+   - Search for users by skills, location, or other criteria
+   - View user profiles and ratings
 
-# Or use your own video
-python demo.py --video path/to/your/video.mp4
-```
+4. **Request Skill Swaps**
+   - Send swap requests to other users
+   - Specify what skill you want and what you're offering in return
 
-### Option 2: Use the Main Script
+5. **Manage Requests**
+   - Accept or reject incoming requests
+   - Track the status of your sent requests
 
-```bash
-# Basic usage
-python player_reidentification.py --video input_video.mp4 --output output_with_tracking.mp4
+6. **Complete Swaps**
+   - Mark swaps as completed after the exchange
+   - Rate and provide feedback on the experience
 
-# With custom parameters
-python player_reidentification.py \
-    --video input_video.mp4 \
-    --model custom_model.pt \
-    --confidence 0.6 \
-    --output tracked_output.mp4 \
-    --results tracking_results.json
-```
+### For Admins
 
-## Usage Examples
+1. **Access Admin Panel**
+   - Log in with admin credentials
+   - Navigate to `/admin` to access the dashboard
 
-### Basic Processing
-```python
-from player_reidentification import PlayerTracker
+2. **User Management**
+   - View all users and their activity
+   - Ban/unban users who violate policies
+   - Monitor user statistics
 
-# Initialize tracker
-tracker = PlayerTracker("yolo_model.pt", confidence_threshold=0.5)
+3. **Content Moderation**
+   - Review and approve new skill submissions
+   - Remove inappropriate content
 
-# Process video
-results = tracker.process_video("input.mp4", "output.mp4")
+4. **Platform Management**
+   - Send platform-wide messages
+   - Generate activity reports
+   - Export data for analysis
 
-# Results contain per-frame tracking data
-print(f"Processed {len(results)} frames")
-```
+## API Endpoints
 
-### Custom Configuration
-```python
-tracker = PlayerTracker(
-    model_path="yolo_model.pt",
-    confidence_threshold=0.6
-)
+### Authentication
+- `POST /api/auth/register` - Register a new user
+- `POST /api/auth/login` - Login user
+- `GET /api/auth/verify` - Verify JWT token
 
-# Adjust tracking parameters
-tracker.max_absent_frames = 20  # Frames before ID expires
-tracker.similarity_threshold = 0.8  # Stricter matching
-```
+### Users
+- `GET /api/users` - Get all users
+- `GET /api/users/:id` - Get user profile
+- `PUT /api/users/:id` - Update user profile
+- `POST /api/users/:id/photo` - Upload profile photo
 
-## Command Line Arguments
+### Skills
+- `GET /api/skills` - Get all skills
+- `POST /api/skills` - Create new skill
+- `GET /api/skills/search/users` - Search users by skill
 
-- `--video`: Path to input video file (required)
-- `--model`: Path to YOLO model file (default: yolo_model.pt)
-- `--output`: Path for output video with tracking visualization
-- `--confidence`: Detection confidence threshold (default: 0.5)
-- `--results`: Path to save tracking results JSON (default: tracking_results.json)
+### Swaps
+- `GET /api/swaps/my` - Get user's swap requests
+- `POST /api/swaps` - Create swap request
+- `POST /api/swaps/:id/accept` - Accept swap request
+- `POST /api/swaps/:id/reject` - Reject swap request
 
-## Output
+### Ratings
+- `POST /api/ratings` - Create rating
+- `GET /api/ratings/user/:userId` - Get user's ratings
+- `GET /api/ratings/my/received` - Get current user's received ratings
 
-The system generates:
-1. **Annotated Video**: Visual tracking with bounding boxes and player IDs
-2. **JSON Results**: Detailed tracking data for each frame
-3. **Statistics**: Summary of tracking performance
+### Admin
+- `GET /api/admin/dashboard` - Get admin dashboard stats
+- `GET /api/admin/users` - Get all users (admin)
+- `POST /api/admin/users/:id/ban` - Ban/unban user
+- `GET /api/admin/export/users` - Export user data
 
-### JSON Format
-```json
-[
-  {
-    "frame": 0,
-    "players": [
-      {
-        "id": 1,
-        "bbox": [x1, y1, x2, y2],
-        "confidence": 0.85,
-        "center": [cx, cy]
-      }
-    ]
-  }
-]
-```
+## Database Schema
 
-## Algorithm Details
+### Users
+- Profile information, authentication details
+- Public/private settings, admin flags
 
-### Detection
-- Uses YOLOv11 fine-tuned for sports player detection
-- Applies confidence thresholding to filter detections
+### Skills
+- Skill name, category, description
+- Approval status for moderation
 
-### Feature Extraction
-- **Visual Features**: RGB color histograms (96 dimensions)
-- **Shape Features**: Aspect ratio and bounding box area
-- **Combined Features**: 98-dimensional feature vector
+### User Skills
+- Links users to offered/wanted skills
+- Proficiency levels and urgency settings
 
-### Tracking Algorithm
-1. **Detection**: Extract players from current frame
-2. **Feature Extraction**: Compute visual and shape features
-3. **Similarity Calculation**: Compare with existing players using:
-   - Visual similarity (70% weight): Cosine distance between features
-   - Spatial similarity (30% weight): Euclidean distance between positions
-4. **ID Assignment**: Match to existing player or assign new ID
-5. **State Update**: Update player information and remove expired IDs
+### Swap Requests
+- Request details, status tracking
+- Links between users and skills
 
-### Re-identification
-- Players absent for up to 30 frames maintain their IDs
-- Re-identification based on visual feature similarity
-- Spatial proximity used as additional matching criterion
+### Ratings
+- User ratings and feedback
+- Linked to completed swaps
 
-## Evaluation
+### Admin Features
+- Platform messages
+- Admin action logs
 
-The system can be evaluated using:
-- **Accuracy**: Percentage of correct ID assignments
-- **ID Switches**: Number of times a player's ID changes incorrectly
-- **Detection Rate**: Percentage of players successfully detected
-- **Runtime**: Processing speed (FPS)
+## Security Features
 
-## Troubleshooting
-
-### Common Issues
-
-1. **Model Not Found**
-   - Download the YOLOv11 model from the provided link
-   - Ensure the model file is named `yolo_model.pt`
-
-2. **Video Format Issues**
-   - Ensure video is in a supported format (MP4, AVI, MOV)
-   - Check that OpenCV can read the video file
-
-3. **Memory Issues**
-   - Reduce video resolution or process shorter clips
-   - Adjust batch processing if needed
-
-4. **Poor Tracking Performance**
-   - Adjust confidence threshold (--confidence)
-   - Modify similarity threshold in code
-   - Increase max_absent_frames for longer occlusions
-
-## Future Improvements
-
-- Deep learning-based re-identification features
-- Multi-camera tracking support
-- Real-time processing optimizations
-- Integration with object tracking algorithms (SORT, DeepSORT)
-- Player jersey number recognition
-- Team-based color clustering
+- **JWT Authentication** - Secure token-based authentication
+- **Password Hashing** - Bcrypt for secure password storage
+- **Input Validation** - Server-side validation for all inputs
+- **Rate Limiting** - API rate limiting to prevent abuse
+- **CORS Configuration** - Cross-origin resource sharing controls
+- **SQL Injection Prevention** - Parameterized queries
 
 ## Contributing
 
@@ -203,8 +210,56 @@ The system can be evaluated using:
 
 ## License
 
-This project is developed for educational purposes as part of a computer vision assignment.
+This project is licensed under the MIT License.
 
-## Assignment Context
+## Support
 
-This implementation addresses **Option 2: Re-Identification in a Single Feed** from the sports analytics assignment, focusing on maintaining consistent player IDs in a 15-second video clip with temporal occlusions and re-entries.
+For questions or issues, please:
+1. Check the documentation
+2. Search existing issues
+3. Create a new issue with detailed information
+
+## Default Admin Account
+
+- **Email:** admin@skillswap.com
+- **Password:** admin123
+
+⚠️ **Important:** Change the default admin password in production!
+
+## Deployment
+
+### Production Setup
+
+1. **Build the frontend**
+   ```bash
+   cd client && npm run build
+   ```
+
+2. **Set production environment variables**
+   ```bash
+   NODE_ENV=production
+   JWT_SECRET=your-secure-jwt-secret
+   ```
+
+3. **Run the production server**
+   ```bash
+   cd server && npm start
+   ```
+
+### Docker Support
+
+Docker configuration can be added for containerized deployment.
+
+## Roadmap
+
+- [ ] Real-time notifications
+- [ ] Mobile app (React Native)
+- [ ] Video chat integration
+- [ ] Skill verification system
+- [ ] Advanced matching algorithms
+- [ ] Social features (groups, events)
+- [ ] Payment integration for premium features
+
+---
+
+Built with ❤️ for the skill-sharing community
