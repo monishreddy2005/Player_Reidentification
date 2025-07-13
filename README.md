@@ -66,13 +66,26 @@ python main.py --video_path my_video.mp4 --no_frames --quiet
 ### Testing Installation
 To verify that everything is set up correctly:
 ```bash
-python test_installation.py
+python3 test_installation.py
 ```
 
 This will check:
 - All required Python packages are installed
 - Local modules can be imported
 - Required files are present
+
+### Testing Your Custom YOLO Model
+After placing your model file, test if it works correctly:
+```bash
+python3 test_model.py --model_path your_model.pt --video_path your_video.mp4
+```
+
+This comprehensive test will:
+- ✅ Verify model loading
+- ✅ Test detection on sample frames
+- ✅ Analyze detection performance on your video
+- ✅ Create a sample output image with bounding boxes
+- ✅ Provide performance statistics
 
 ## Dependencies
 - PyTorch
@@ -84,13 +97,22 @@ This will check:
 
 ## Project Structure
 ```
+├── yolov11_model.pt        # YOLO model (PLACE YOUR .pt FILE HERE)
+├── 15sec_input_720p.mp4    # Input video (PLACE YOUR VIDEO HERE)
 ├── main.py                 # Main execution script
 ├── player_tracker.py       # Core tracking logic
 ├── feature_extractor.py    # Feature extraction utilities
 ├── utils.py               # Helper functions
+├── test_model.py          # Model testing script
+├── setup.py               # Automated setup
 ├── requirements.txt       # Dependencies
 ├── README.md             # This file
+├── CUSTOM_MODEL_GUIDE.md  # Guide for custom models
 └── output/               # Generated results
+    ├── frames/           # Individual annotated frames
+    ├── tracked_players.mp4  # Output video with tracking
+    ├── tracking_summary.md  # Text summary
+    └── detection_plot.png   # Performance visualization
 ```
 
 ## Usage

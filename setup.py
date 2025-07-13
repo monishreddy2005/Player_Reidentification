@@ -71,11 +71,15 @@ def main():
     # Check for required files
     if check_files():
         print("\n🎉 Setup completed successfully!")
-        print("You can now run the system with:")
-        print("python main.py")
+        print("\nNext steps:")
+        print("1. Test your model: python3 test_model.py")
+        print("2. Run the system: python3 main.py")
     else:
         print("\n⚠️  Setup completed but some files are missing.")
         print("Please download the required files and run setup again.")
+        print("\nOnce files are ready:")
+        print("1. Test your model: python3 test_model.py")
+        print("2. Run the system: python3 main.py")
 
 if __name__ == "__main__":
     main()

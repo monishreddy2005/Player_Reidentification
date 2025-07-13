@@ -69,8 +69,19 @@ class PlayerReIDSystem:
                     confidence = box.conf[0].cpu().numpy()
                     class_id = int(box.cls[0].cpu().numpy())
                     
-                    # Filter for person class (assuming class 0 is person)
-                    if class_id == 0 and confidence >= confidence_threshold:
+                    # Get class name if available
+                    class_name = "unknown"
+                    if hasattr(self.model, 'model') and hasattr(self.model.model, 'names'):
+                        class_name = self.model.model.names.get(class_id, f"class_{class_id}")
+                    
+                    # Filter for person/player classes
+                    # Common person class IDs: 0 (COCO person), or custom player classes
+                    valid_classes = [0]  # Add more class IDs if your model uses different ones
+                    
+                    # Also accept if class name contains 'person' or 'player'
+                    if (class_id in valid_classes or 
+                        'person' in class_name.lower() or 
+                        'player' in class_name.lower()) and confidence >= confidence_threshold:
                         bbox = (int(x1), int(y1), int(x2), int(y2))
                         detections.append((bbox, float(confidence)))
         
