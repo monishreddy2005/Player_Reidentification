@@ -4,10 +4,13 @@
 This project implements a player re-identification system for sports analytics (Option 2). The system maintains consistent player IDs when players re-enter the frame after going out of view.
 
 ## Features
-- YOLOv11-based player detection
-- Feature extraction using appearance and positional information
-- Re-identification tracking using similarity matching
-- Real-time processing simulation
+- 🎯 **Enhanced Player Tracking** with Hungarian algorithm
+- 🔄 **Kalman Filtering** for motion prediction and smooth trajectories  
+- 🧠 **Multi-Modal Features** (appearance + motion + temporal consistency)
+- ⚡ **Adaptive Configuration** for different tracking scenarios
+- 🎮 **Real-time Processing** with optimized performance
+- 📊 **Advanced Analytics** with stability scoring and track quality metrics
+- 🔧 **Configurable Parameters** for fine-tuning tracking behavior
 
 ## Setup Instructions
 
@@ -40,27 +43,55 @@ mkdir -p output/frames
 ```
 
 ### Running the System
-Basic usage:
+
+**🎯 Quick Start for ID Switching Issues:**
 ```bash
-python main.py
+# For players that come close together (RECOMMENDED)
+python3 main.py --tracking_mode crowded
 ```
 
-With custom options:
+**📊 Choose Your Tracking Scenario:**
 ```bash
-python main.py --video_path 15sec_input_720p.mp4 --model_path yolov11_model.pt --output_dir results
+# Crowded scenes with players frequently close together
+python3 main.py --tracking_mode crowded
+
+# Sparse scenes with few, well-separated players
+python3 main.py --tracking_mode sparse
+
+# Fast-moving sports with rapid player movements
+python3 main.py --tracking_mode fast
+
+# Scenes with frequent player occlusions
+python3 main.py --tracking_mode occlusion
+
+# Default enhanced mode (optimized for general sports)
+python3 main.py
+```
+
+**🔧 Advanced Usage:**
+```bash
+python3 main.py --video_path your_video.mp4 --model_path your_model.pt --tracking_mode crowded --output_dir results
 ```
 
 ### Command Line Options
 - `--video_path`: Path to input video file (default: `15sec_input_720p.mp4`)
 - `--model_path`: Path to YOLOv11 model file (default: `yolov11_model.pt`)
 - `--output_dir`: Output directory for results (default: `output`)
+- `--tracking_mode`: Tracking optimization mode (default, crowded, sparse, fast, occlusion)
 - `--no_frames`: Skip saving individual frames
 - `--no_video`: Skip creating output video
 - `--quiet`: Suppress progress output
 
-Example:
+**🎮 Examples:**
 ```bash
-python main.py --video_path my_video.mp4 --no_frames --quiet
+# For ID switching problems when players come close
+python3 main.py --tracking_mode crowded --video_path sports_video.mp4
+
+# Fast processing without individual frames
+python3 main.py --tracking_mode fast --no_frames --quiet
+
+# Custom model with occlusion-heavy tracking
+python3 main.py --model_path custom_model.pt --tracking_mode occlusion
 ```
 
 ### Testing Installation

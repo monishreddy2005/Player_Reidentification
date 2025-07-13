@@ -18,7 +18,8 @@ except ImportError:
     print("Error: ultralytics package not installed. Please run: pip install ultralytics")
     sys.exit(1)
 
-from player_tracker import PlayerTracker
+from enhanced_tracker import EnhancedPlayerTracker
+from tracking_config import TrackingConfig
 from utils import (
     download_model_if_needed, create_color_palette, draw_tracks_on_frame,
     save_frame_with_tracks, create_tracking_summary, create_detection_plot,
@@ -29,19 +30,42 @@ from utils import (
 class PlayerReIDSystem:
     """Main class for player re-identification system."""
     
-    def __init__(self, model_path: str, output_dir: str = "output"):
+    def __init__(self, model_path: str, output_dir: str = "output", 
+                 tracking_mode: str = "default"):
         """Initialize the re-identification system."""
         self.model_path = model_path
         self.output_dir = output_dir
         self.model = None
-        self.tracker = PlayerTracker(
-            max_missed_frames=30,
-            similarity_threshold=0.6
-        )
+        
+        # Initialize tracker with appropriate configuration
+        config = self._get_tracking_config(tracking_mode)
+        self.tracker = EnhancedPlayerTracker(config=config)
         self.colors = create_color_palette(20)  # Support up to 20 different players
         
         # Ensure output directory exists
         ensure_output_dir(self.output_dir)
+    
+    def _get_tracking_config(self, mode: str) -> TrackingConfig:
+        """Get tracking configuration based on mode."""
+        mode = mode.lower()
+        if mode == "crowded" or mode == "close_players":
+            return TrackingConfig.for_crowded_scenes()
+        elif mode == "sparse" or mode == "few_players":
+            return TrackingConfig.for_sparse_scenes()
+        elif mode == "fast" or mode == "fast_motion":
+            return TrackingConfig.for_fast_motion()
+        elif mode == "occlusion" or mode == "occlusion_heavy":
+            return TrackingConfig.for_occlusion_heavy()
+        else:
+            # Default configuration optimized for close player scenarios
+            config = TrackingConfig()
+            config.SIMILARITY_THRESHOLD = 0.35  # Stricter matching
+            config.MAX_DISTANCE_THRESHOLD = 120  # Closer distance for sports
+            config.APPEARANCE_WEIGHT = 0.6       # Rely more on appearance
+            config.MOTION_WEIGHT = 0.25
+            config.TEMPORAL_WEIGHT = 0.15
+            config.MIN_TRACK_LENGTH = 6          # More stable tracks
+            return config
         
     def load_model(self):
         """Load the YOLOv11 model."""
@@ -190,6 +214,10 @@ def main():
                        help="Don't create output video")
     parser.add_argument("--quiet", action="store_true",
                        help="Suppress progress output")
+    parser.add_argument("--tracking_mode", type=str, default="default",
+                       choices=["default", "crowded", "close_players", "sparse", "few_players", 
+                               "fast", "fast_motion", "occlusion", "occlusion_heavy"],
+                       help="Tracking mode for different scenarios")
     
     args = parser.parse_args()
     
@@ -209,7 +237,7 @@ def main():
         return
     
     # Initialize system
-    reid_system = PlayerReIDSystem(args.model_path, args.output_dir)
+    reid_system = PlayerReIDSystem(args.model_path, args.output_dir, args.tracking_mode)
     
     # Load model
     if not reid_system.load_model():
