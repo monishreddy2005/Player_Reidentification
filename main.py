@@ -18,8 +18,7 @@ except ImportError:
     print("Error: ultralytics package not installed. Please run: pip install ultralytics")
     sys.exit(1)
 
-from enhanced_tracker import EnhancedPlayerTracker
-from tracking_config import TrackingConfig
+from robust_tracker import HybridTracker, RobustPlayerTracker
 from utils import (
     download_model_if_needed, create_color_palette, draw_tracks_on_frame,
     save_frame_with_tracks, create_tracking_summary, create_detection_plot,
@@ -31,41 +30,29 @@ class PlayerReIDSystem:
     """Main class for player re-identification system."""
     
     def __init__(self, model_path: str, output_dir: str = "output", 
-                 tracking_mode: str = "default"):
+                 tracking_mode: str = "robust"):
         """Initialize the re-identification system."""
         self.model_path = model_path
         self.output_dir = output_dir
         self.model = None
+        self.tracking_mode = tracking_mode
         
-        # Initialize tracker with appropriate configuration
-        config = self._get_tracking_config(tracking_mode)
-        self.tracker = EnhancedPlayerTracker(config=config)
+        # Initialize robust tracker
+        print(f"🎯 Initializing tracking system in {tracking_mode} mode...")
+        
+        if tracking_mode.lower() in ["robust", "stable", "conservative"]:
+            self.tracker = RobustPlayerTracker(debug_mode=True)
+        elif tracking_mode.lower() in ["basic", "simple", "original"]:
+            self.tracker = HybridTracker(mode="basic")
+        else:
+            # Default to robust for best stability
+            self.tracker = RobustPlayerTracker(debug_mode=True)
+            print("⚠️ Unknown mode, defaulting to robust tracking")
+        
         self.colors = create_color_palette(20)  # Support up to 20 different players
         
         # Ensure output directory exists
         ensure_output_dir(self.output_dir)
-    
-    def _get_tracking_config(self, mode: str) -> TrackingConfig:
-        """Get tracking configuration based on mode."""
-        mode = mode.lower()
-        if mode == "crowded" or mode == "close_players":
-            return TrackingConfig.for_crowded_scenes()
-        elif mode == "sparse" or mode == "few_players":
-            return TrackingConfig.for_sparse_scenes()
-        elif mode == "fast" or mode == "fast_motion":
-            return TrackingConfig.for_fast_motion()
-        elif mode == "occlusion" or mode == "occlusion_heavy":
-            return TrackingConfig.for_occlusion_heavy()
-        else:
-            # Default configuration optimized for close player scenarios
-            config = TrackingConfig()
-            config.SIMILARITY_THRESHOLD = 0.35  # Stricter matching
-            config.MAX_DISTANCE_THRESHOLD = 120  # Closer distance for sports
-            config.APPEARANCE_WEIGHT = 0.6       # Rely more on appearance
-            config.MOTION_WEIGHT = 0.25
-            config.TEMPORAL_WEIGHT = 0.15
-            config.MIN_TRACK_LENGTH = 6          # More stable tracks
-            return config
         
     def load_model(self):
         """Load the YOLOv11 model."""
@@ -190,12 +177,30 @@ class PlayerReIDSystem:
         end_time = time.time()
         processing_time = end_time - start_time
         
-        print(f"\nProcessing completed!")
-        print(f"Total frames processed: {frame_count}")
-        print(f"Total unique players detected: {len(track_history)}")
-        print(f"Processing time: {processing_time:.1f} seconds")
-        print(f"Average FPS: {frame_count / processing_time:.1f}")
-        print(f"Results saved to: {self.output_dir}/")
+        print(f"\n🎉 Processing completed!")
+        print(f"📊 Final Statistics:")
+        print(f"   Total frames processed: {frame_count}")
+        print(f"   Total unique players detected: {len(track_history)}")
+        print(f"   Processing time: {processing_time:.1f} seconds")
+        print(f"   Average FPS: {frame_count / processing_time:.1f}")
+        print(f"   Results saved to: {self.output_dir}/")
+        
+        # Show tracking statistics if available
+        if hasattr(self.tracker, 'get_stats'):
+            stats = self.tracker.get_stats()
+            print(f"\n🔍 Tracking Statistics:")
+            print(f"   Tracking mode: {self.tracking_mode}")
+            print(f"   Total tracks created: {stats.get('total_tracks_created', 'N/A')}")
+            print(f"   ID switch rate: {stats.get('id_switch_rate', 0):.1f}%")
+            print(f"   Total assignments: {stats.get('total_assignments', 'N/A')}")
+        
+        # Show stability scores
+        if track_history:
+            print(f"\n📈 Track Stability Scores:")
+            for track_id, track_info in track_history.items():
+                stability = track_info.get('stability_score', 0)
+                detections = track_info.get('total_detections', 0)
+                print(f"   Player {track_id}: {stability:.2f} stability, {detections} detections")
         
         return True
 
@@ -214,10 +219,9 @@ def main():
                        help="Don't create output video")
     parser.add_argument("--quiet", action="store_true",
                        help="Suppress progress output")
-    parser.add_argument("--tracking_mode", type=str, default="default",
-                       choices=["default", "crowded", "close_players", "sparse", "few_players", 
-                               "fast", "fast_motion", "occlusion", "occlusion_heavy"],
-                       help="Tracking mode for different scenarios")
+    parser.add_argument("--tracking_mode", type=str, default="robust",
+                       choices=["robust", "stable", "conservative", "basic", "simple", "original"],
+                       help="Tracking mode: robust (recommended), basic (simple), stable, conservative")
     
     args = parser.parse_args()
     

@@ -29,18 +29,21 @@ This is an **advanced computer vision system** for **player re-identification in
 ```
 ├── 📹 yolov11_model.pt           # YOLO model (PLACE YOUR .pt FILE HERE)
 ├── 🎬 15sec_input_720p.mp4       # Input video (PLACE YOUR VIDEO HERE)
-├── 🚀 main.py                    # Main execution script (ENHANCED)
-├── 🧠 enhanced_tracker.py        # NEW: Advanced tracking with Hungarian algorithm
-├── ⚙️  tracking_config.py         # NEW: Configurable tracking parameters
+├── 🚀 main.py                    # Main execution script (ROBUST)
+├── 🛡️ robust_tracker.py          # NEW: Stable, conservative tracking
+├── 🧠 enhanced_tracker.py        # Advanced tracking (for reference)
+├── ⚙️  tracking_config.py         # Configurable tracking parameters
 ├── 🔧 feature_extractor.py       # Multi-modal feature extraction
 ├── 🛠️ utils.py                   # Helper functions and visualization
-├── 📋 requirements.txt           # Dependencies (includes scipy for Hungarian algorithm)
-└── 🗂️ player_tracker.py          # Original tracker (kept for reference)
+├── 📋 requirements.txt           # Dependencies
+└── 🗂️ player_tracker.py          # Original basic tracker
 ```
 
-### **🧪 Testing & Setup Files**
+### **🧪 Testing & Debugging Files**
 ```
 ├── 🔍 test_model.py              # Comprehensive YOLO model testing
+├── 🐛 debug_tracker.py           # NEW: Debug tracking issues
+├── 🎛️ tune_tracker.py            # NEW: Parameter tuning tool
 ├── ✅ test_installation.py       # Installation verification
 ├── 🎛️ setup.py                   # Automated environment setup
 ```
@@ -111,21 +114,18 @@ python3 test_model.py --model_path your_model.pt --video_path your_video.mp4
 # This will create sample_output.jpg showing detections
 ```
 
-### **Step 5: Run Enhanced Tracking**
+### **Step 5: Run Robust Tracking**
 ```bash
-# 🎯 For ID switching issues (RECOMMENDED for close players)
-python3 main.py --tracking_mode crowded
+# 🛡️ Robust mode (RECOMMENDED - most stable)
+python3 main.py --tracking_mode robust
 
-# 🏃 For fast-moving sports
-python3 main.py --tracking_mode fast
+# 🔧 Basic mode (simple, original algorithm)
+python3 main.py --tracking_mode basic
 
-# 👥 For few, well-separated players
-python3 main.py --tracking_mode sparse
+# 🎯 Conservative mode (extra stable)
+python3 main.py --tracking_mode conservative
 
-# 🙈 For frequent occlusions
-python3 main.py --tracking_mode occlusion
-
-# 🔧 Default enhanced mode
+# ⚡ Default robust mode
 python3 main.py
 ```
 
@@ -354,6 +354,45 @@ config = TrackingConfig.for_occlusion_heavy()   # Frequent hiding
 
 ## 🚨 **Troubleshooting Guide**
 
+### **🔴 CRITICAL: If ID Switching Got WORSE**
+```bash
+# 1. First, debug what's happening
+python3 debug_tracker.py --model_path your_model.pt --video_path your_video.mp4
+
+# 2. Use robust mode (most stable)
+python3 main.py --tracking_mode robust
+
+# 3. If still bad, try basic mode
+python3 main.py --tracking_mode basic
+
+# 4. Create custom config for your specific video
+python3 tune_tracker.py --similarity 0.8 --distance 150 --appearance 0.9
+```
+
+### **❌ Problem: "IDs switch when players are FAR apart"**
+```bash
+# SOLUTION: Use more lenient matching
+python3 tune_tracker.py --similarity 0.8 --distance 250 --appearance 0.7
+
+# Then use the generated custom_tracker.py
+```
+
+### **❌ Problem: "IDs switch when players are CLOSE together"**
+```bash
+# SOLUTION: Use stricter, appearance-focused matching  
+python3 tune_tracker.py --similarity 0.6 --distance 120 --appearance 0.9
+
+# Focus heavily on visual appearance
+```
+
+### **❌ Problem: "Too many NEW IDs appearing"**
+```bash
+# SOLUTION: Require more stable tracks
+python3 tune_tracker.py --similarity 0.6 --min_tracks 5
+
+# Makes IDs appear only after being stable
+```
+
 ### **❌ Problem: "Model file not found"**
 ```bash
 # Make sure your model file exists and path is correct
@@ -370,36 +409,16 @@ python3 test_model.py --model_path your_model.pt --video_path your_video.mp4
 # "Class 0: 0.85" (person class with confidence)
 ```
 
-### **❌ Problem: "Still getting ID switches"**
+### **🔧 Advanced Debugging**
 ```bash
-# Try the most conservative settings
-python3 main.py --tracking_mode occlusion --video_path your_video.mp4
+# Create debug video to see what's happening
+python3 debug_tracker.py --create_video --model_path your_model.pt
 
-# Or customize for extreme cases
-# Edit tracking_config.py:
-# SIMILARITY_THRESHOLD = 0.2
-# APPEARANCE_WEIGHT = 0.8
-# MIN_TRACK_LENGTH = 10
-```
+# Compare different tracking approaches
+python3 debug_tracker.py --max_frames 200
 
-### **❌ Problem: "Tracks disappearing too quickly"**
-```bash
-# Use more persistent tracking
-python3 main.py --tracking_mode sparse --video_path your_video.mp4
-
-# Or increase persistence in config:
-# MAX_MISSED_FRAMES = 60
-# SIMILARITY_THRESHOLD = 0.6
-```
-
-### **❌ Problem: "Too many false player IDs"**
-```bash
-# Use stricter ID assignment
-python3 main.py --tracking_mode crowded --video_path your_video.mp4
-
-# Or increase stability requirements:
-# MIN_TRACK_LENGTH = 10
-# SIMILARITY_THRESHOLD = 0.3
+# Check detection quality
+python3 test_model.py --model_path your_model.pt --video_path your_video.mp4
 ```
 
 ---
